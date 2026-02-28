@@ -9,7 +9,7 @@
         href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto:ital,wdth@0,75..100;1,75..100&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="index.js"></script>
+    <script src="index.js"defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -35,7 +35,7 @@
                 </div>
                 <ul class="nav__links">
                     <li><a href="#" class="nav__link">Home</a></li>
-                    <li><a href="#" class="nav__link">Find Movie</a></li>
+                    
                     <a href="#" class="nav__link nav__link--primary" id="contact-btn">Contact</a>
                 </ul>
             </div>
@@ -75,12 +75,17 @@
                     <div class="movie__header">
                         <h2 class="section__header">All Movies</h2>
                     </div>
+                    <form class="search__form" id="searchForm">
+                        <input type="text" id="searchInput" placeholder="Search movies..." required />
+                        <button type="submit" class="btn-primary">Search</button>
+                    </form>
 
                     <select id="filter__movies">
                         <option value="" disabled selected>Sort Movies</option>
-                        <option value="TITLE">Title (A–Z)</option>
-                        <option value="Year">Year (Old → New)</option>
-                        <option value="imdbID">IMDb ID</option>
+                        <option value="A-Z">Title (A–Z)</option>
+                        <option value="Z-A">Title (Z–A)</option>
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
                     </select>
 
                 </div>

@@ -1,168 +1,174 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-  // ==============================
-  // GLOBAL DOM REFERENCES
-  // ==============================
+  
+  // GET ELEMENTS
+  
+
   const nav = document.querySelector("nav");
-  const navLinks = document.querySelectorAll(".nav__link");
   const contactBtn = document.getElementById("contact-btn");
   const footerContactBtn = document.getElementById("footer-contact-btn");
 
+  const modal = document.getElementById("contact-modal");
+  const closeBtn = document.querySelector(".modal__close");
+  const overlay = document.querySelector(".modal__overlay");
+
+  const searchForm = document.getElementById("searchForm");
+  const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filter__movies");
   const movieList = document.querySelector(".movie-list");
   const loading = document.getElementById("loading");
 
-  const modal = document.getElementById("contact-modal");
-  const closeBtn = modal?.querySelector(".modal__close");
-  const overlay = modal?.querySelector(".modal__overlay");
+  const API_KEY = "f20aea4a";
+  let moviesData = [];
 
-  const footerLinks = document.querySelectorAll('.footer__link[href^="#"]');
+  
+  // NAV SCROLL EFFECT
+  
 
-  // ==============================
-  // HEADER NAV INTERACTION
-  // ==============================
-  if (nav && navLinks.length) {
-    window.addEventListener("scroll", () => {
-      nav.classList.toggle("scrolled", window.scrollY > 50);
-    });
+  window.addEventListener("scroll", function () {
+    if (window.scrollY > 50) {
+      nav.classList.add("scrolled");
+    } else {
+      nav.classList.remove("scrolled");
+    }
+  });
 
-    navLinks.forEach(link => {
-      link.addEventListener("click", () => {
-        navLinks.forEach(l => l.classList.remove("active"));
-        link.classList.add("active");
-      });
-    });
+  
+  // MODAL
+  
+
+  function openModal() {
+    modal.classList.remove("hidden");
+    document.body.classList.add("modal-open");
   }
 
-  // ==============================
-  // CONTACT MODAL
-  // ==============================
-  if (modal) {
-    function openModal() {
-      modal.classList.remove("hidden");
-      document.body.classList.add("modal-open");
-    }
-
-    function closeModal() {
-      modal.classList.add("hidden");
-      document.body.classList.remove("modal-open");
-    }
-
-    contactBtn?.addEventListener("click", e => {
-      e.preventDefault();
-      openModal();
-    });
-
-    footerContactBtn?.addEventListener("click", e => {
-      e.preventDefault();
-      openModal();
-    });
-
-    closeBtn?.addEventListener("click", closeModal);
-    overlay?.addEventListener("click", closeModal);
-
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") closeModal();
-    });
+  function closeModal() {
+    modal.classList.add("hidden");
+    document.body.classList.remove("modal-open");
   }
 
-  // ==============================
-  // MOVIE FETCH + FILTER + LOADING
-  // ==============================
-  if (filterSelect && movieList && loading) {
+  contactBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    openModal();
+  });
 
-    const API_KEY = "407e7c25";
-    let moviesData = [];
+  footerContactBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    openModal();
+  });
 
-    function showLoading() {
-      loading.classList.remove("hidden");
-      movieList.classList.add("hidden");
-      filterSelect.disabled = true;
-    }
+  closeBtn.addEventListener("click", closeModal);
+  overlay.addEventListener("click", closeModal);
 
-    function hideLoading() {
-      loading.classList.add("hidden");
-      movieList.classList.remove("hidden");
-      filterSelect.disabled = false;
-    }
+  
+  // FETCH MOVIES
+  
 
-    async function fetchMovies(query = "Fast") {
-      showLoading();
-      try {
-        const res = await fetch(
-          `https://www.omdbapi.com/?apikey=${API_KEY}&S=${query}`
-        );
+  async function fetchMovies(searchTerm) {
+    loading.classList.remove("hidden");
+    movieList.innerHTML = "";
 
-        const data = await res.json();
+    try {
+      const response = await fetch(
+        "https://www.omdbapi.com/?apikey=" + API_KEY + "&s=" + searchTerm
+      );
 
-        if (data.Response === "True") {
-          moviesData = data.Search;
-          displayMovies(moviesData);
-        } else {
-          movieList.innerHTML = "<p>No movies found.</p>";
-        }
+      const data = await response.json();
 
-      } catch (err) {
-        console.error("Fetch error:", err);
-        movieList.innerHTML = "<p>Error loading movies.</p>";
+      if (data.Response === "True") {
+        moviesData = data.Search;
+        displayMovies(moviesData);
+      } else {
+        movieList.innerHTML = "<p>No movies found.</p>";
       }
 
-      setTimeout(hideLoading, 500);
+    } catch (error) {
+      movieList.innerHTML = "<p>Error loading movies.</p>";
+      console.log(error);
     }
 
-    function displayMovies(movies) {
-      movieList.innerHTML = "";
+    loading.classList.add("hidden");
+  }
 
-      movies.forEach(movie => {
-        const card = document.createElement("div");
-        card.className = "movie";
+  
+  // DISPLAY MOVIES
+  
 
-        card.innerHTML = `
-          <div class="movie-card">
-            <div class="movie-card__container">
-              <img src="${movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/200"}" alt="${movie.Title}">
-              <p><b>Title:</b> ${movie.Title}</p>
-              <p><b>Year:</b> ${movie.Year}</p>
-              <p><b>imdbID:</b> ${movie.imdbID}</p>
-            </div>
-          </div>
-        `;
+  function displayMovies(movies) {
+  
+  const html = movies.map(movie => {
+    const poster = movie.Poster !== "N/A" 
+      ? movie.Poster 
+      : "https://via.placeholder.com";
 
-        movieList.appendChild(card);
+    
+    return `
+      <div class="movie-card">
+        <img class="movie-card__img" src="${poster}" alt="${movie.Title} poster" />
+        <div class="movie-card__info">
+          <h3 class="movie-card__title">${movie.Title}</h3>
+          <p class="movie-card__year">${movie.Year}</p>
+        </div>
+      </div>
+    `;
+  }).join(''); 
+
+  movieList.innerHTML = html;
+}
+
+  
+  // SEARCH
+  
+
+  searchForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const searchTerm = searchInput.value.trim();
+
+    if (searchTerm !== "") {
+      fetchMovies(searchTerm);
+    }
+  });
+
+  
+  // SORT
+  
+
+  filterSelect.addEventListener("change", function (e) {
+
+    let sortedMovies = moviesData.slice();
+
+    if (e.target.value === "A-Z") {
+      sortedMovies.sort(function (a, b) {
+        return a.Title.localeCompare(b.Title);
       });
     }
 
-    function sortMovies(type) {
-      let sorted = [...moviesData];
-
-      switch (type) {
-        case "TITLE":
-          sorted.sort((a, b) => a.Title.localeCompare(b.Title));
-          break;
-
-        case "Year":
-          sorted.sort((a, b) => parseInt(a.Year) - parseInt(b.Year));
-          break;
-
-        case "imdbID":
-          sorted.sort((a, b) => a.imdbID.localeCompare(b.imdbID));
-          break;
-      }
-
-      displayMovies(sorted);
+    if (e.target.value === "Z-A") {
+      sortedMovies.sort(function (a, b) {
+        return b.Title.localeCompare(a.Title);
+      });
     }
 
-    // Load movies automatically on page load
-    fetchMovies("Fast");
+    if (e.target.value === "newest") {
+      sortedMovies.sort(function (a, b) {
+        return Number(b.Year) - Number(a.Year);
+      });
+    }
 
-    // Sorting dropdown
-    filterSelect.addEventListener("change", e => {
-      showLoading();
-      setTimeout(() => {
-        sortMovies(e.target.value);
-        hideLoading();
-      }, 400);
-    });
-  }
+    if (e.target.value === "oldest") {
+      sortedMovies.sort(function (a, b) {
+        return Number(a.Year) - Number(b.Year);
+      });
+    }
+
+    displayMovies(sortedMovies);
+  });
+
+ 
+  // LOAD DEFAULT MOVIES
+ 
+
+  fetchMovies("Fast");
 
 });
